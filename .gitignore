@@ -1,0 +1,16 @@
+# Секретные переменные Terraform
+*.tfvars
+
+# Локальные стейт-файлы Terraform (в них могут быть пароли в открытом виде!)
+*.tfstate
+*.tfstate.*
+
+# Директория с плагинами провайдеров
+.terraform/
+.terraform.lock.hcl
+
+# Чувствительные данные Ansible (опционально, если будешь использовать vault)
+*.retry
+
+# Автогенерируемый инвентарь Ansible
+ansible/inventory.ini

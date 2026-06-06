@@ -1,0 +1,7 @@
+---
+- name: Prepare servers and install Docker
+  hosts: all
+  become: yes
+  roles:
+    - geerlingguy.pip
+    - geerlingguy.docker

@@ -1,0 +1,7 @@
+---
+# Переменная для роли geerlingguy.pip
+pip_install_packages:
+  - name: docker
+
+# Опционально: можно явно указать, что мы хотим установить docker-compose
+docker_install_compose_plugin: true
