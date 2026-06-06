@@ -13,7 +13,7 @@
 *.retry
 
 # Автогенерируемый инвентарь Ansible
-ansible/inventory.ini
+inventory.ini
 
 # Пароль для Ansible Vault
 ansible/.vault_pass
