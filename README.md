@@ -149,6 +149,7 @@ make tf-destroy
 
 ## Architecture Diagram
 
+```mermaid
 graph LR
     %% Определение узлов
     Client((🌐 Internet<br>Клиент))
@@ -185,6 +186,7 @@ graph LR
     style Cache fill:#dc382d,color:#fff,stroke:#333,stroke-width:2px
     style App1 fill:#e3000f,color:#fff,stroke:#333,stroke-width:2px
     style App2 fill:#e3000f,color:#fff,stroke:#333,stroke-width:2px
+```
 
 ## Visual Documentation
 
