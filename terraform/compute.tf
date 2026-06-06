@@ -22,8 +22,10 @@ resource "yandex_compute_instance" "docker_nodes" {
     core_fraction = each.value.fraction
   }
 
+  allow_stopping_for_update = true
+
   scheduling_policy {
-    preemptible = true
+    preemptible = false
   }
 
   boot_disk {
