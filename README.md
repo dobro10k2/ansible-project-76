@@ -54,9 +54,9 @@ Before you begin, ensure you have the following installed on your local control 
    ```
 
 3. **Configure Ansible Vault Password:**
-   Sensitive variables (DB passwords, Redis passwords, Datadog API keys) are encrypted. You must create a `.vault_pass` file inside the `ansible/` directory containing the decryption password:
+   Sensitive variables (DB passwords, Redis passwords, Datadog API keys) are encrypted. You must create a `.vault_pass` file in the root directory containing the decryption password:
    ```bash
-   echo "your_secure_vault_password" > ansible/group_vars/webservers/vault.yml
+   echo "your_secure_vault_password" > .vault_pass
    ```
    *(Note: This file is ignored by Git to prevent secret leaks).*
 
@@ -70,7 +70,7 @@ Initialize Terraform and provision the Virtual Machines, Network, Security Group
 make tf-init
 make tf-apply
 ```
-*Note: Upon successful application, Terraform automatically generates the `ansible/inventory.ini` file with the newly assigned IP addresses.*
+*Note: Upon successful application, Terraform automatically generates the `inventory.ini` file with the newly assigned IP addresses.*
 
 ### 2. Code Quality & Linting
 Ensure your Infrastructure as Code meets industry standards before deploying.
@@ -124,6 +124,7 @@ make tf-destroy
 ├── Makefile                # Automation commands (deploy, lint, format, vault)
 ├── README.md               # Project documentation
 ├── ansible/
+│   ├── ansible.cfg         # Ansible configuration
 │   ├── group_vars/
 │   │   ├── all.yml         # Global variables (domain, email, Nginx upstreams)
 │   │   ├── infra.yml       # Infra node config (Redis bind interface)
@@ -131,9 +132,10 @@ make tf-destroy
 │   │       ├── vars.yml    # App config (Datadog site, ports, DB/Redis hosts)
 │   │       └── vault.yml   # Encrypted secrets (Passwords, API Keys)
 │   ├── templates/          # Jinja2 templates (e.g., .env.j2, Nginx config)
-│   ├── inventory.ini       # Auto-generated dynamic inventory
-│   ├── playbook.yml        # Main playbook (uses tags: setup, deploy)
-│   └── requirements.yml    # Ansible Galaxy dependencies
+│   └── playbook.yml        # Main playbook logic (imported by root playbook)
+├── inventory.ini           # Auto-generated dynamic inventory
+├── playbook.yml            # Entrypoint playbook for Hexlet compatibility
+├── requirements.yml        # Ansible Galaxy dependencies
 └── terraform/
     ├── compute.tf          # VM provisioning
     ├── dns.tf              # DNS zone and A-record for hex-infra.ru
