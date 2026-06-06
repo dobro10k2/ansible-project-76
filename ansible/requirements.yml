@@ -4,6 +4,7 @@ roles:
   - name: geerlingguy.docker
   - name: geerlingguy.nginx
   - name: datadog.datadog
+  - name: geerlingguy.redis
 
 collections:
   - name: community.docker

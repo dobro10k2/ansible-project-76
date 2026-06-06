@@ -1,4 +1,6 @@
-.PHONY: tf-init tf-plan tf-apply tf-destroy ansible-ping install setup deploy vault-encrypt vault-decrypt vault-edit
+.PHONY: tf-init tf-plan tf-apply tf-destroy tf-fmt tf-lint \
+        ansible-ping install setup deploy vault-encrypt vault-decrypt vault-edit \
+        ansible-lint ansible-fix
 
 # === Terraform ===
 tf-init:
@@ -12,6 +14,15 @@ tf-apply:
 
 tf-destroy:
 	cd terraform && terraform destroy
+
+# Автоматическое исправление форматирования кода Terraform
+tf-fmt:
+	cd terraform && terraform fmt
+
+# Проверка синтаксиса и форматирования кода Terraform
+tf-lint:
+	cd terraform && terraform fmt -check
+	cd terraform && terraform validate
 
 # === Ansible ===
 # Пинг серверов для проверки доступности
@@ -41,3 +52,11 @@ setup:
 # Деплой приложения (запускает только базу и редмайн)
 deploy:
 	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags deploy --vault-password-file .vault_pass
+
+# Запуск линтера кода Ansible
+ansible-lint:
+	cd ansible && ansible-lint playbook.yml group_vars/
+
+# Автоматическое исправление некоторых ошибок стиля и правил в Ansible
+ansible-fix:
+	cd ansible && ansible-lint --write playbook.yml group_vars/

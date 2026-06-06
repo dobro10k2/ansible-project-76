@@ -5,7 +5,7 @@
 
 This project automates the provisioning of cloud infrastructure and the configuration of a 3-node Docker cluster in Yandex Cloud using **Terraform** and **Ansible**. 
 
-The infrastructure is designed to host the **Redmine** containerized application with an **Nginx** load balancer (secured via automated Let's Encrypt SSL certificates) and a **PostgreSQL** database.
+The infrastructure is designed to host the **Redmine** containerized application with an **Nginx** load balancer (secured via automated Let's Encrypt SSL certificates), a **PostgreSQL** database, **Redis** for caching, and **Datadog** for monitoring.
 
 ## Live Application
 **URL:** [https://hex-infra.ru](https://hex-infra.ru)
@@ -19,13 +19,15 @@ The infrastructure is designed to host the **Redmine** containerized application
 * **Containerization:** Docker Engine & Docker Compose
 * **Application:** Redmine (Ruby on Rails)
 * **Database:** PostgreSQL 15
+* **Caching & Queue:** Redis
 * **Reverse Proxy & SSL:** Nginx + Certbot (Let's Encrypt)
+* **Monitoring:** Datadog (Infrastructure & APM)
 * **DNS:** Automated A-record creation for `hex-infra.ru`
 
 **Nodes Provisioned:**
-1. `infra-node`: Hosts the Nginx Load Balancer and the PostgreSQL database.
-2. `app-node-1`: Application worker node (Redmine container).
-3. `app-node-2`: Application worker node (Redmine container).
+1. `infra-node`: Hosts the Nginx Load Balancer, PostgreSQL database, and Redis service.
+2. `app-node-1`: Application worker node (Redmine container + Datadog Agent).
+3. `app-node-2`: Application worker node (Redmine container + Datadog Agent).
 
 ## Prerequisites
 
@@ -52,15 +54,15 @@ Before you begin, ensure you have the following installed on your local control 
    ```
 
 3. **Configure Ansible Vault Password:**
-   Sensitive variables (like database passwords) are encrypted. You must create a `.vault_pass` file inside the `ansible/` directory containing the decryption password:
+   Sensitive variables (DB passwords, Redis passwords, Datadog API keys) are encrypted. You must create a `.vault_pass` file inside the `ansible/` directory containing the decryption password:
    ```bash
-   echo "your_secure_vault_password" > ansible/.vault_pass
+   echo "your_secure_vault_password" > ansible/group_vars/webservers/vault.yml
    ```
    *(Note: This file is ignored by Git to prevent secret leaks).*
 
-## Usage (Quick Start)
+## Usage
 
-The project includes a `Makefile` to simplify deployment operations.
+The project includes a `Makefile` to simplify deployment, linting, and formatting operations.
 
 ### 1. Provision Infrastructure
 Initialize Terraform and provision the Virtual Machines, Network, Security Groups, and DNS zone.
@@ -70,34 +72,46 @@ make tf-apply
 ```
 *Note: Upon successful application, Terraform automatically generates the `ansible/inventory.ini` file with the newly assigned IP addresses.*
 
-### 2. Configure Servers
-Download the required Ansible Galaxy roles and prepare the nodes (installing Docker and dependencies).
+### 2. Code Quality & Linting
+Ensure your Infrastructure as Code meets industry standards before deploying.
+```bash
+# Format and validate Terraform code
+make tf-fmt
+make tf-lint
+
+# Lint and auto-fix Ansible playbooks
+make ansible-lint
+make ansible-fix
+```
+
+### 3. Configure Servers
+Download the required Ansible Galaxy roles and prepare the nodes (installing Docker and core dependencies).
 ```bash
 # Verify SSH connectivity
 make ansible-ping
 
-# Install dependencies (geerlingguy.pip, geerlingguy.docker, geerlingguy.nginx)
+# Install dependencies (pip, docker, nginx, datadog, redis)
 make install
 
 # Execute the setup phase (installs Docker Engine)
 make setup
 ```
 
-### 3. Manage Secrets (Ansible Vault)
-If you need to update the database password or other sensitive variables:
+### 4. Manage Secrets (Ansible Vault)
+To securely update passwords or API keys:
 ```bash
 make vault-edit     # Safely edit encrypted secrets
 make vault-encrypt  # Encrypt a newly created vault.yml
 make vault-decrypt  # Decrypt the vault.yml for viewing
 ```
 
-### 4. Deploy Application
-Deploy the PostgreSQL database container, generate the `.env` file from the template, start the Redmine application containers, and configure Nginx with SSL.
+### 5. Deploy Application
+Deploy infrastructure services (PostgreSQL, Redis), start Redmine containers, configure Nginx with SSL, and initialize Datadog monitoring agents.
 ```bash
 make deploy
 ```
 
-### 5. Teardown
+### 6. Teardown
 To destroy all created resources and avoid further cloud charges:
 ```bash
 make tf-destroy
@@ -107,23 +121,24 @@ make tf-destroy
 
 ```text
 .
-├── Makefile                # Automation commands
+├── Makefile                # Automation commands (deploy, lint, format, vault)
 ├── README.md               # Project documentation
 ├── ansible/
 │   ├── group_vars/
 │   │   ├── all.yml         # Global variables (domain, email, Nginx upstreams)
+│   │   ├── infra.yml       # Infra node config (Redis bind interface)
 │   │   └── webservers/
-│   │       ├── vars.yml    # App-specific variables (ports, db settings)
-│   │       └── vault.yml   # Encrypted secrets (Ansible Vault)
-│   ├── templates/          # Jinja2 templates (e.g., .env.j2, Nginx configs)
+│   │       ├── vars.yml    # App config (Datadog site, ports, DB/Redis hosts)
+│   │       └── vault.yml   # Encrypted secrets (Passwords, API Keys)
+│   ├── templates/          # Jinja2 templates (e.g., .env.j2, Nginx config)
 │   ├── inventory.ini       # Auto-generated dynamic inventory
 │   ├── playbook.yml        # Main playbook (uses tags: setup, deploy)
 │   └── requirements.yml    # Ansible Galaxy dependencies
 └── terraform/
-    ├── compute.tf          # VM provisioning (for_each loop)
+    ├── compute.tf          # VM provisioning
     ├── dns.tf              # DNS zone and A-record for hex-infra.ru
     ├── inventory.tftpl     # Template for dynamic Ansible inventory
-    ├── network.tf          # VPC, Subnets, and Security Groups (HTTP, HTTPS, SSH, ICMP)
+    ├── network.tf          # VPC, Subnets, and Security Groups
     ├── outputs.tf          # Outputs and local_file generator for inventory
     ├── providers.tf        # Yandex provider configuration
     ├── variables.tf        # Variable definitions
