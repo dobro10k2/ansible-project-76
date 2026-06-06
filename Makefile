@@ -1,4 +1,4 @@
-.PHONY: tf-init tf-plan tf-apply tf-destroy ansible-ping install setup
+.PHONY: tf-init tf-plan tf-apply tf-destroy ansible-ping install setup deploy
 
 # === Terraform ===
 tf-init:
@@ -25,4 +25,8 @@ install:
 
 # Запуск подготовки серверов (установка pip и docker через скачанные роли)
 setup:
-	cd ansible && ansible-playbook -i inventory.ini playbook.yml
+	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags setup
+
+# Деплой приложения (запускает только базу и редмайн)
+deploy:
+	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags deploy

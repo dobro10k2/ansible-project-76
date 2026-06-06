@@ -5,3 +5,36 @@ pip_install_packages:
 
 # Опционально: можно явно указать, что мы хотим установить docker-compose
 docker_install_compose_plugin: true
+
+# Настройки Redmine
+redmine_port: 8080
+db_host: "{{ hostvars['infra-node'].private_ip }}"
+db_user: "redmine"
+db_password: "supersecretpassword"
+db_name: "redmine_db"
+
+# Настройки балансировщика
+domain_name: "hex-infra.ru"
+admin_email: "syseror@gmail.com"
+
+# Настройки geerlingguy.nginx
+nginx_remove_default_vhost: true # Удаляет стандартную заглушку Nginx
+
+nginx_upstreams:
+  - name: redmine_app
+    servers:
+      - "{{ hostvars['app-node-1'].private_ip }}:{{ redmine_port }}"
+      - "{{ hostvars['app-node-2'].private_ip }}:{{ redmine_port }}"
+
+nginx_vhosts:
+  - listen: "80"
+    server_name: "{{ domain_name }}"
+    filename: "redmine.conf"
+    extra_parameters: |
+      location / {
+          proxy_pass http://redmine_app;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+      }

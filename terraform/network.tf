@@ -27,6 +27,19 @@ resource "yandex_vpc_security_group" "cluster_sg" {
     port           = 80
   }
 
+  # Разрешаем HTTPS (443) отовсюду для защищенного доступа
+  ingress {
+    protocol       = "TCP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+    port           = 443
+  }
+
+  # Разрешаем ICMP (эхо-запросы), чтобы работал ping домена и серверов
+  ingress {
+    protocol       = "ICMP"
+    v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Разрешаем любой трафик между машинами ВНУТРИ этой Security Group
   ingress {
     protocol          = "ANY"

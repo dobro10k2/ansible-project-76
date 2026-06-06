@@ -2,6 +2,7 @@
 roles:
   - name: geerlingguy.pip
   - name: geerlingguy.docker
+  - name: geerlingguy.nginx
 
 collections:
   - name: community.docker

@@ -1,9 +1,9 @@
 [webservers]
-app-node-1 ansible_host=${nodes["app-node-1"]}
-app-node-2 ansible_host=${nodes["app-node-2"]}
+app-node-1 ansible_host=${nodes["app-node-1"]} private_ip=${private_ips["app-node-1"]}
+app-node-2 ansible_host=${nodes["app-node-2"]} private_ip=${private_ips["app-node-2"]}
 
 [infra]
-infra-node ansible_host=${nodes["infra-node"]}
+infra-node ansible_host=${nodes["infra-node"]} private_ip=${private_ips["infra-node"]}
 
 [all:vars]
 ansible_user=ubuntu

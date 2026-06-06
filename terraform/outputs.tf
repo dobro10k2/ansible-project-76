@@ -17,13 +17,17 @@ output "nodes_private_ips" {
 # Добавляем генерацию файла inventory.ini для Ansible
 resource "local_file" "ansible_inventory" {
   content = templatefile("${path.module}/inventory.tftpl", {
-    # Собираем словарь: "имя_машины" = "ее_публичный_IP"
+    # Передаем публичные IP
     nodes = {
       for name, instance in yandex_compute_instance.docker_nodes : 
       name => instance.network_interface[0].nat_ip_address
+    },
+    # Передаем приватные IP
+    private_ips = {
+      for name, instance in yandex_compute_instance.docker_nodes : 
+      name => instance.network_interface[0].ip_address
     }
   })
   
-  # Указываем путь, куда сохранить готовый файл
   filename = "${path.module}/../ansible/inventory.ini"
 }
