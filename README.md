@@ -146,3 +146,53 @@ make tf-destroy
     ├── variables.tf        # Variable definitions
     └── versions.tf         # Terraform and provider versions
 ```
+
+## Architecture Diagram
+
+graph LR
+    %% Определение узлов
+    Client((🌐 Internet<br>Клиент))
+    
+    subgraph "Yandex Cloud (VPC)"
+        
+        subgraph "infra-node (Public & Private IP)"
+            Nginx["🟢 Nginx<br>(Reverse Proxy + SSL)"]
+            DB[("🐘 PostgreSQL<br>(Порт 5432)")]
+            Cache[("🔴 Redis<br>(Порт 6379)")]
+        end
+
+        subgraph "webservers (Только Private IP)"
+            App1["💎 app-node-1<br>(Redmine :8080)"]
+            App2["💎 app-node-2<br>(Redmine :8080)"]
+        end
+
+        %% Связи (Трафик)
+        Client -- "HTTPS (443)" --> Nginx
+        
+        Nginx -- "HTTP (8080)<br>Балансировка" --> App1
+        Nginx -- "HTTP (8080)<br>Балансировка" --> App2
+
+        App1 -. "Чтение/Запись" .-> DB
+        App2 -. "Чтение/Запись" .-> DB
+
+        App1 -. "Кэш/Очереди" .-> Cache
+        App2 -. "Кэш/Очереди" .-> Cache
+    end
+
+    %% Стилизация цветов (Опционально)
+    style Nginx fill:#009639,color:#fff,stroke:#333,stroke-width:2px
+    style DB fill:#336791,color:#fff,stroke:#333,stroke-width:2px
+    style Cache fill:#dc382d,color:#fff,stroke:#333,stroke-width:2px
+    style App1 fill:#e3000f,color:#fff,stroke:#333,stroke-width:2px
+    style App2 fill:#e3000f,color:#fff,stroke:#333,stroke-width:2px
+
+## Visual Documentation
+
+### 1. Application & SSL
+The Redmine application is securely accessible via HTTPS, with certificates automatically provisioned and managed by Let's Encrypt through the Nginx reverse proxy.
+![Redmine Secured](img/redmine_ssl.png)
+
+### 2. Infrastructure Monitoring
+All application nodes are actively monitored using Datadog, tracking resource utilization and application health.
+![Datadog Infrastructure](img/datadog_infra.png)
+![Datadog Dashboard](img/datadog_dashb.png)

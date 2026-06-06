@@ -16,4 +16,4 @@
 inventory.ini
 
 # Пароль для Ansible Vault
-ansible/.vault_pass
+.vault_pass
