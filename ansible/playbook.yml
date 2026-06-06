@@ -84,3 +84,12 @@
       args:
         # Не запускать получение сертификата, если он уже есть
         creates: /etc/letsencrypt/live/{{ domain_name }}/fullchain.pem
+
+# === ЭТАП 5: Мониторинг Datadog ===
+- name: Setup Datadog Monitoring
+  # Требование: только для группы webservers
+  hosts: webservers
+  become: yes
+  tags: deploy
+  roles:
+    - { role: datadog.datadog }

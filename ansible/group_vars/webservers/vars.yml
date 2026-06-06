@@ -4,3 +4,19 @@ db_host: "{{ hostvars['infra-node'].private_ip }}"
 db_user: "redmine"
 db_password: "{{ vault_db_password }}"
 db_name: "redmine_db"
+
+# === Настройки Datadog ===
+datadog_api_key: "{{ vault_datadog_api_key }}"
+datadog_site: "datadoghq.eu"
+
+# Настройка проверок (Integrations)
+datadog_checks:
+  # Настраиваем http_check для проверки доступности нашего Redmine
+  http_check:
+    init_config:
+    instances:
+      - name: "redmine_local_health"
+        # Агент сидит на самом веб-сервере, поэтому проверяет localhost
+        url: "http://127.0.0.1:{{ redmine_port }}"
+        timeout: 5
+        min_collection_interval: 15
