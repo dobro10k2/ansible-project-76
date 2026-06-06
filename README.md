@@ -14,7 +14,7 @@ The infrastructure is designed to host the **Redmine** containerized application
 
 * **Cloud Provider:** Yandex Cloud
 * **Infrastructure as Code (IaC):** Terraform (v1.5.0+)
-* **Configuration Management:** Ansible (v2.10+)
+* **Configuration Management:** Ansible (v2.10+) with **Ansible Vault** for secrets management
 * **OS:** Ubuntu 22.04 LTS
 * **Containerization:** Docker Engine & Docker Compose
 * **Application:** Redmine (Ruby on Rails)
@@ -51,8 +51,12 @@ Before you begin, ensure you have the following installed on your local control 
    yc_folder_id = "your_folder_id"
    ```
 
-3. **Configure Ansible Variables (Optional):**
-   You can adjust application ports, database credentials, and domain settings in `ansible/group_vars/all.yml`.
+3. **Configure Ansible Vault Password:**
+   Sensitive variables (like database passwords) are encrypted. You must create a `.vault_pass` file inside the `ansible/` directory containing the decryption password:
+   ```bash
+   echo "your_secure_vault_password" > ansible/.vault_pass
+   ```
+   *(Note: This file is ignored by Git to prevent secret leaks).*
 
 ## Usage (Quick Start)
 
@@ -79,13 +83,21 @@ make install
 make setup
 ```
 
-### 3. Deploy Application
+### 3. Manage Secrets (Ansible Vault)
+If you need to update the database password or other sensitive variables:
+```bash
+make vault-edit     # Safely edit encrypted secrets
+make vault-encrypt  # Encrypt a newly created vault.yml
+make vault-decrypt  # Decrypt the vault.yml for viewing
+```
+
+### 4. Deploy Application
 Deploy the PostgreSQL database container, generate the `.env` file from the template, start the Redmine application containers, and configure Nginx with SSL.
 ```bash
 make deploy
 ```
 
-### 4. Teardown
+### 5. Teardown
 To destroy all created resources and avoid further cloud charges:
 ```bash
 make tf-destroy
@@ -98,10 +110,13 @@ make tf-destroy
 ├── Makefile                # Automation commands
 ├── README.md               # Project documentation
 ├── ansible/
-│   ├── group_vars/         # Variables (domain, ports, db credentials, Nginx upstreams)
-│   │   └── all.yml
-│   ├── templates/          # Jinja2 templates (e.g., .env.j2 for Redmine)
-│   ├── inventory.ini       # Auto-generated inventory
+│   ├── group_vars/
+│   │   ├── all.yml         # Global variables (domain, email, Nginx upstreams)
+│   │   └── webservers/
+│   │       ├── vars.yml    # App-specific variables (ports, db settings)
+│   │       └── vault.yml   # Encrypted secrets (Ansible Vault)
+│   ├── templates/          # Jinja2 templates (e.g., .env.j2, Nginx configs)
+│   ├── inventory.ini       # Auto-generated dynamic inventory
 │   ├── playbook.yml        # Main playbook (uses tags: setup, deploy)
 │   └── requirements.yml    # Ansible Galaxy dependencies
 └── terraform/

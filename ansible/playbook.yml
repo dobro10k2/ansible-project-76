@@ -13,6 +13,11 @@
   hosts: infra
   become: yes
   tags: deploy
+  vars:
+    # Забираем переменные из группы webservers
+    pg_user: "{{ hostvars[groups['webservers'][0]]['db_user'] }}"
+    pg_password: "{{ hostvars[groups['webservers'][0]]['db_password'] }}"
+    pg_db: "{{ hostvars[groups['webservers'][0]]['db_name'] }}"
   tasks:
     - name: Run PostgreSQL container
       community.docker.docker_container:
@@ -21,9 +26,9 @@
         state: started
         restart_policy: always
         env:
-          POSTGRES_USER: "{{ db_user }}"
-          POSTGRES_PASSWORD: "{{ db_password }}"
-          POSTGRES_DB: "{{ db_name }}"
+          POSTGRES_USER: "{{ pg_user }}"
+          POSTGRES_PASSWORD: "{{ pg_password }}"
+          POSTGRES_DB: "{{ pg_db }}"
         ports:
           - "5432:5432"
 

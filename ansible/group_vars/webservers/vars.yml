@@ -1,0 +1,6 @@
+---
+redmine_port: 8080
+db_host: "{{ hostvars['infra-node'].private_ip }}"
+db_user: "redmine"
+db_password: "{{ vault_db_password }}"
+db_name: "redmine_db"

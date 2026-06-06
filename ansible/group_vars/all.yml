@@ -6,13 +6,6 @@ pip_install_packages:
 # Опционально: можно явно указать, что мы хотим установить docker-compose
 docker_install_compose_plugin: true
 
-# Настройки Redmine
-redmine_port: 8080
-db_host: "{{ hostvars['infra-node'].private_ip }}"
-db_user: "redmine"
-db_password: "supersecretpassword"
-db_name: "redmine_db"
-
 # Настройки балансировщика
 domain_name: "hex-infra.ru"
 admin_email: "syseror@gmail.com"
@@ -23,8 +16,9 @@ nginx_remove_default_vhost: true # Удаляет стандартную заг�
 nginx_upstreams:
   - name: redmine_app
     servers:
-      - "{{ hostvars['app-node-1'].private_ip }}:{{ redmine_port }}"
-      - "{{ hostvars['app-node-2'].private_ip }}:{{ redmine_port }}"
+      # Забираем redmine_port прямо из переменных конкретных нод
+      - "{{ hostvars['app-node-1'].private_ip }}:{{ hostvars['app-node-1'].redmine_port }}"
+      - "{{ hostvars['app-node-2'].private_ip }}:{{ hostvars['app-node-2'].redmine_port }}"
 
 nginx_vhosts:
   - listen: "80"

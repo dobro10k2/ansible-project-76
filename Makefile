@@ -1,4 +1,4 @@
-.PHONY: tf-init tf-plan tf-apply tf-destroy ansible-ping install setup deploy
+.PHONY: tf-init tf-plan tf-apply tf-destroy ansible-ping install setup deploy vault-encrypt vault-decrypt vault-edit
 
 # === Terraform ===
 tf-init:
@@ -23,10 +23,21 @@ install:
 	cd ansible && ansible-galaxy install -r requirements.yml
 	cd ansible && ansible-galaxy collection install -r requirements.yml
 
+# --- Команды Ansible Vault ---
+vault-encrypt:
+	cd ansible && ansible-vault encrypt group_vars/webservers/vault.yml --vault-password-file .vault_pass
+
+vault-decrypt:
+	cd ansible && ansible-vault decrypt group_vars/webservers/vault.yml --vault-password-file .vault_pass
+
+vault-edit:
+	cd ansible && ansible-vault edit group_vars/webservers/vault.yml --vault-password-file .vault_pass
+# -----------------------------
+
 # Запуск подготовки серверов (установка pip и docker через скачанные роли)
 setup:
-	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags setup
+	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags setup --vault-password-file .vault_pass
 
 # Деплой приложения (запускает только базу и редмайн)
 deploy:
-	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags deploy
+	cd ansible && ansible-playbook -i inventory.ini playbook.yml --tags deploy --vault-password-file .vault_pass
